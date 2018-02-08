@@ -13,8 +13,8 @@ env = Maze()
 S_INFO = env.n_features
 A_DIM = env.n_actions
 NUM_AGENTS = 1
-ACTOR_LR_RATE = 0.0001
-CRITIC_LR_RATE = 0.001
+ACTOR_LR_RATE = 0.001
+CRITIC_LR_RATE = 0.01
 RANDOM_SEED = 42
 RAND_RANGE = 10000
 SUMMARY_DIR = './results'
@@ -23,6 +23,7 @@ NN_MODEL = None
 TRAIN_SEQ_LEN = 10
 MODEL_SAVE_INTERVAL = 100
 DISPLAY_REWARD_THRESHOLD = 100
+
 
 def central_agent(net_params_queues, exp_queues):
     
@@ -129,10 +130,10 @@ def agent(agent_id, net_params_queue, exp_queue):
             
             state = s
             action_prob = actor.predict(np.reshape(state, (1, S_INFO)))
+	    print action_prob
             action_cumsum = np.cumsum(action_prob)
             current_a = (action_cumsum > np.random.randint(1, RAND_RANGE) / float(RAND_RANGE)).argmax()
             s_, reward, flag_end = env.step(current_a)
-            print s_, current_a, reward
             r_batch.append(reward)
             s_batch.append(state)
             action_vec[current_a] = 1
@@ -142,7 +143,6 @@ def agent(agent_id, net_params_queue, exp_queue):
             ep_rs_sum +=reward
             
             if len(r_batch) >= TRAIN_SEQ_LEN or flag_end:
-                print "update A3C params"
                 exp_queue.put([s_batch,
                                 a_batch,
                                 r_batch,
@@ -156,7 +156,6 @@ def agent(agent_id, net_params_queue, exp_queue):
                 del r_batch[:]
 
             if flag_end:
-                print "=="*10
                 if first_flag:
                     print "first init running reward"
                     first_flag = False

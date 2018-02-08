@@ -4,8 +4,6 @@ Red rectangle:          explorer.
 Black rectangles:       hells       [reward = -1].
 Yellow bin circle:      paradise    [reward = +1].
 All other states:       ground      [reward = 0].
-This script is the environment part of this example. The RL is in RL_brain.py.
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
 """
 
 
@@ -81,7 +79,7 @@ class Maze(tk.Tk, object):
 
     def reset(self):
         self.update()
-        time.sleep(0.5)
+        #time.sleep(0.5)
         self.canvas.delete(self.rect)
         origin = np.array([20, 20])
         self.rect = self.canvas.create_rectangle(
@@ -117,11 +115,11 @@ class Maze(tk.Tk, object):
             done = True
             s_ = 'terminal'
         elif s_ in [self.canvas.coords(self.hell1), self.canvas.coords(self.hell2)]:
-            reward = -10
+            reward = -1
             done = True
             s_ = 'terminal'
         else:
-            reward = -1
+            reward = 0  
             done = False
 
         return s_, reward, done
