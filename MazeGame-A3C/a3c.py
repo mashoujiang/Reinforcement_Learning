@@ -55,7 +55,8 @@ class ActorNetwork(object):
     def my_dense(self, inp, units):
         reg = tf.contrib.layers.l2_regularizer(REG_PARA)
         output = tf.layers.dense(
-                    inputs=inp, units=units, kernel_regularizer=reg)
+                    inputs=inp, units=units, kernel_regularizer=reg,
+		    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
         output = tf.nn.relu(output)
         return output
 
@@ -64,7 +65,9 @@ class ActorNetwork(object):
             inputs = tf.placeholder("float", [None, self.s_dim])
             output = self.my_dense(inputs, 16)
             output = self.my_dense(output, 16)
-            output = tf.layers.dense(inputs=output, units=self.a_dim)
+            output = tf.layers.dense(inputs=output, 
+			kernel_initializer=tf.truncated_normal_initializer(stddev=0.01), 
+			units=self.a_dim)
             output = tf.nn.softmax(output)
             print "created actor network"
             return inputs, output
@@ -121,7 +124,8 @@ class CriticNetwork(object):
     def my_dense(self, inp, units):
         reg = tf.contrib.layers.l2_regularizer(REG_PARA)
         output = tf.layers.dense(
-                    inputs=inp, units=units, kernel_regularizer=reg)
+                    inputs=inp, units=units, kernel_regularizer=reg,
+		    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
         output = tf.nn.relu(output)
         return output
 
@@ -130,7 +134,8 @@ class CriticNetwork(object):
             inputs = tf.placeholder('float', [None, self.s_dim])
             output = self.my_dense(inputs, 16)
             output = self.my_dense(output, 16)
-            output = tf.layers.dense(inputs=output, units=1)
+            output = tf.layers.dense(inputs=output, units=1,
+			kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
             print "created critic network"
             return inputs, output
 
@@ -164,7 +169,7 @@ def learn(s_batch, a_batch, r_batch, terminal, actor, critic):
     if terminal:
         R_batch[-1,0] = r_batch[-1,0]
     else:
-        R_batch[-1,0] = v_batch[-1,0]
+        R_batch[-1,0] = v_batch[-1,0] 
 
     for t in reversed(xrange(batch_size-1)):
         R_batch[t,0] = r_batch[t] + GAMMA * R_batch[t+1,0]
