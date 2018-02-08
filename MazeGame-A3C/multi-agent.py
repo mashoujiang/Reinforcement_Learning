@@ -130,7 +130,7 @@ def agent(agent_id, net_params_queue, exp_queue):
             
             state = s
             action_prob = actor.predict(np.reshape(state, (1, S_INFO)))
-	    print action_prob
+	    #print action_prob
             action_cumsum = np.cumsum(action_prob)
             current_a = (action_cumsum > np.random.randint(1, RAND_RANGE) / float(RAND_RANGE)).argmax()
             s_, reward, flag_end = env.step(current_a)
