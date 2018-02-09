@@ -16,7 +16,10 @@ else:
     import tkinter as tk
 
 
-UNIT = 40   # pixels
+UNIT = 80   # pixels
+CENTRAL = UNIT/2 # central of grids
+SEAM = UNIT/8 # seam width
+INNER = CENTRAL - SEAM # inner grid
 MAZE_H = 4  # grid height
 MAZE_W = 4  # grid width
 STATUS_SIZE = MAZE_H * MAZE_W  # status' shape
@@ -59,32 +62,32 @@ class Maze(tk.Tk, object):
             self.canvas.create_line(x0, y0, x1, y1)
 
         # create origin
-        origin = np.array([20, 20])
+        origin = np.array([CENTRAL, CENTRAL])
 
         # hell
         hell1_center = origin + np.array([UNIT * 2, UNIT])
         self.hell1 = self.canvas.create_rectangle(
-            hell1_center[0] - 15, hell1_center[1] - 15,
-            hell1_center[0] + 15, hell1_center[1] + 15,
+            hell1_center[0] - INNER, hell1_center[1] - INNER,
+            hell1_center[0] + INNER, hell1_center[1] + INNER,
             fill='black')
         # hell
         hell2_center = origin + np.array([UNIT, UNIT * 2])
         self.hell2 = self.canvas.create_rectangle(
-            hell2_center[0] - 15, hell2_center[1] - 15,
-            hell2_center[0] + 15, hell2_center[1] + 15,
+            hell2_center[0] - INNER, hell2_center[1] - INNER,
+            hell2_center[0] + INNER, hell2_center[1] + INNER,
             fill='black')
 
         # create oval
         oval_center = origin + UNIT * 2
         self.oval = self.canvas.create_oval(
-            oval_center[0] - 15, oval_center[1] - 15,
-            oval_center[0] + 15, oval_center[1] + 15,
+            oval_center[0] - INNER, oval_center[1] - INNER,
+            oval_center[0] + INNER, oval_center[1] + INNER,
             fill='yellow')
 
         # create red rect
         self.rect = self.canvas.create_rectangle(
-            origin[0] - 15, origin[1] - 15,
-            origin[0] + 15, origin[1] + 15,
+            origin[0] - INNER, origin[1] - INNER,
+            origin[0] + INNER, origin[1] + INNER,
             fill='red')
 
         # pack all
@@ -93,10 +96,10 @@ class Maze(tk.Tk, object):
     def reset(self):
         self.update()
         self.canvas.delete(self.rect)
-        origin = np.array([20, 20])
+        origin = np.array([CENTRAL, CENTRAL])
         self.rect = self.canvas.create_rectangle(
-            origin[0] - 15, origin[1] - 15,
-            origin[0] + 15, origin[1] + 15,
+            origin[0] - INNER, origin[1] - INNER,
+            origin[0] + INNER, origin[1] + INNER,
             fill='red')
         # return observation
         s = self.canvas.coords(self.rect)

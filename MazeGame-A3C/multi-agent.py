@@ -1,4 +1,6 @@
 import os
+import sys
+import time
 import logging
 import numpy as np
 import multiprocessing as mp
@@ -8,10 +10,6 @@ import a3c
 from maze_env import Maze
 #from progbar import ProgBar
 
-env = Maze()
-
-S_INFO = env.n_features
-A_DIM = env.n_actions
 NUM_AGENTS = 1
 ACTOR_LR_RATE = 0.001
 CRITIC_LR_RATE = 0.01
@@ -19,10 +17,16 @@ RANDOM_SEED = 42
 RAND_RANGE = 10000
 SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
+MODEL_DIR = './models'
 NN_MODEL = None
 TRAIN_SEQ_LEN = 10
 MODEL_SAVE_INTERVAL = 100
 DISPLAY_REWARD_THRESHOLD = 100
+MAX_EPISODE = 8000
+
+env = Maze()
+S_INFO = env.n_features
+A_DIM = env.n_actions
 
 
 def central_agent(net_params_queues, exp_queues):
@@ -50,6 +54,7 @@ def central_agent(net_params_queues, exp_queues):
             saver.restore(sess, nn_model)
 
         epoch = 0
+	i_episode = np.zeros(NUM_AGENTS)
 
         while True:
             actor_net_params = actor.get_network_params()
@@ -64,7 +69,13 @@ def central_agent(net_params_queues, exp_queues):
             total_critic_loss = 0.0
             total_batch_len = 0
             for i in xrange(NUM_AGENTS):
-                s_batch, a_batch, r_batch, terminal = exp_queues[i].get()
+                s_batch, a_batch, r_batch, terminal, i_episode[i] = exp_queues[i].get()
+
+	    	# only agent_id=0 i_episode > MAX_EPISODE, break loop.
+		if terminal:
+	    	    if i_episode > MAX_EPISODE:
+		        print "central agent exit."
+		        sys.exit(0)
 
                 advantage_batch, actor_loss_batch, critic_loss_batch = \
                                 a3c.learn(s_batch=np.stack(s_batch,axis=0),
@@ -93,10 +104,11 @@ def central_agent(net_params_queues, exp_queues):
             writer.add_summary(summary_str, epoch)
             writer.flush()
 
-            if epoch % MODEL_SAVE_INTERVAL == 0:
-                save_path = saver.save(sess, SUMMARY_DIR + "/nn_model_ep_" + 
-                                        str(epoch) + ".ckpt")
+            if i_episode[0] % MODEL_SAVE_INTERVAL == 0:
+                save_path = saver.save(sess, MODEL_DIR + "/nn_model_ep_" + 
+                                        str(int(i_episode[0])) + ".ckpt")
                 logging.info("Model saved in file: " + save_path)
+
 
 def agent(agent_id, net_params_queue, exp_queue):
     with tf.Session() as sess:
@@ -120,8 +132,8 @@ def agent(agent_id, net_params_queue, exp_queue):
         running_reward = 0
         RENDER = True
         ep_rs_sum = 0
-        i_episode = 0
         first_flag = True
+        i_episode = 0
 
         while True:
             if agent_id ==0 and RENDER: 
@@ -146,15 +158,21 @@ def agent(agent_id, net_params_queue, exp_queue):
                 exp_queue.put([s_batch,
                                 a_batch,
                                 r_batch,
-                                flag_end])
+                                flag_end,
+				i_episode])
+		if flag_end:
+		    if i_episode > MAX_EPISODE:
+		        print "single agent exit"
+		        sys.exit(0)	
+
                 actor_net_params, critic_net_params = net_params_queue.get()
                 actor.set_network_params(actor_net_params)
                 critic.set_network_params(critic_net_params)
                 
-                del s_batch[:]
+		del s_batch[:]
                 del a_batch[:]
                 del r_batch[:]
-
+	    
             if flag_end:
                 if first_flag:
                     print "first init running reward"
@@ -165,11 +183,12 @@ def agent(agent_id, net_params_queue, exp_queue):
 
                 if running_reward > DISPLAY_REWARD_THRESHOLD:
                     RENDER = True         
-                if agent_id == 0:
-                    print("episode:", i_episode, " reward:", int(running_reward))
+                #if agent_id == 0:
+                #    print("episode:", i_episode, " reward:", int(running_reward))
                 i_episode += 1
                 ep_rs_sum = 0
                 s = env.reset()
+	
 
 
 def main():
@@ -177,9 +196,13 @@ def main():
 
     if not os.path.exists(SUMMARY_DIR):
         os.makedirs(SUMMARY_DIR)
+    
+    if not os.path.exists(MODEL_DIR):
+        os.makedirs(MODEL_DIR)
 
     net_params_queues = []
     exp_queues = []
+
     for i in xrange(NUM_AGENTS):
         net_params_queues.append(mp.Queue(1))
         exp_queues.append(mp.Queue(1))
