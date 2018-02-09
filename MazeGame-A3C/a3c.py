@@ -55,8 +55,7 @@ class ActorNetwork(object):
     def my_dense(self, inp, units):
         reg = tf.contrib.layers.l2_regularizer(REG_PARA)
         output = tf.layers.dense(
-                    inputs=inp, units=units, kernel_regularizer=reg,
-		    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+                    inputs=inp, units=units, kernel_regularizer=reg)
         output = tf.nn.relu(output)
         return output
 
@@ -64,10 +63,10 @@ class ActorNetwork(object):
         with tf.variable_scope("actor"):
             inputs = tf.placeholder("float", [None, self.s_dim])
             output = self.my_dense(inputs, 16)
+            output = self.my_dense(output, 32)
+            output = self.my_dense(output, 32)
             output = self.my_dense(output, 16)
-            output = tf.layers.dense(inputs=output, 
-			kernel_initializer=tf.truncated_normal_initializer(stddev=0.01), 
-			units=self.a_dim)
+            output = tf.layers.dense(inputs=output, units=self.a_dim)
             output = tf.nn.softmax(output)
             print "created actor network"
             return inputs, output
@@ -124,8 +123,7 @@ class CriticNetwork(object):
     def my_dense(self, inp, units):
         reg = tf.contrib.layers.l2_regularizer(REG_PARA)
         output = tf.layers.dense(
-                    inputs=inp, units=units, kernel_regularizer=reg,
-		    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+                    inputs=inp, units=units, kernel_regularizer=reg)
         output = tf.nn.relu(output)
         return output
 
@@ -133,9 +131,10 @@ class CriticNetwork(object):
         with tf.variable_scope('critic'):
             inputs = tf.placeholder('float', [None, self.s_dim])
             output = self.my_dense(inputs, 16)
+            output = self.my_dense(output, 32)
+            output = self.my_dense(output, 32)
             output = self.my_dense(output, 16)
-            output = tf.layers.dense(inputs=output, units=1,
-			kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+            output = tf.layers.dense(inputs=output, units=1)
             print "created critic network"
             return inputs, output
 

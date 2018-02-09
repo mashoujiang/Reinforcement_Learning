@@ -19,7 +19,7 @@ else:
 UNIT = 40   # pixels
 MAZE_H = 4  # grid height
 MAZE_W = 4  # grid width
-STATUS_SIZE = 4  # status' shape
+STATUS_SIZE = MAZE_H * MAZE_W  # status' shape
 
 class Maze(tk.Tk, object):
     def __init__(self):
@@ -31,6 +31,19 @@ class Maze(tk.Tk, object):
         self.geometry('{0}x{1}'.format(MAZE_H * UNIT, MAZE_H * UNIT))
         self._build_maze()
         self.withdraw()
+	self.position = self.get_init_position()
+
+    def get_init_position(self):
+	init_pos = np.zeros([MAZE_H, MAZE_W])
+	init_pos[0][0] = 1
+	return init_pos.reshape(-1)
+
+    def get_position(self, s):
+	init_pos = np.zeros([MAZE_H, MAZE_W])
+	x = int(s[0]/UNIT)
+	y = int(s[1]/UNIT)
+	init_pos[x][y] = 1
+	return init_pos.reshape(-1)
 
     def _build_maze(self):
         self.canvas = tk.Canvas(self, bg='white',
@@ -79,7 +92,6 @@ class Maze(tk.Tk, object):
 
     def reset(self):
         self.update()
-        #time.sleep(0.5)
         self.canvas.delete(self.rect)
         origin = np.array([20, 20])
         self.rect = self.canvas.create_rectangle(
@@ -87,7 +99,8 @@ class Maze(tk.Tk, object):
             origin[0] + 15, origin[1] + 15,
             fill='red')
         # return observation
-        return self.canvas.coords(self.rect)
+        s = self.canvas.coords(self.rect)
+	return self.get_position(s)
 
     def step(self, action):
         s = self.canvas.coords(self.rect)
@@ -111,21 +124,18 @@ class Maze(tk.Tk, object):
 
         # reward function
         if s_ == self.canvas.coords(self.oval):
+            reward = 10
+            done = True
+        elif s_ in [self.canvas.coords(self.hell1), self.canvas.coords(self.hell2)]:
             reward = 1
             done = True
-            s_ = 'terminal'
-        elif s_ in [self.canvas.coords(self.hell1), self.canvas.coords(self.hell2)]:
-            reward = -1
-            done = True
-            s_ = 'terminal'
         else:
             reward = 0  
             done = False
 
-        return s_, reward, done
+        return self.get_position(s_), reward, done
 
     def render(self):
-        time.sleep(0.1)
         self.update()
 
 
