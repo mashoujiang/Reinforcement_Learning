@@ -8,10 +8,12 @@ This script is the main part which controls the update method of this example.
 The RL is in RL_brain.py.
 View more on my tutorial page: https://morvanzhou.github.io/tutorials/
 """
+import time
 
-from maze_env import Maze
 from RL_brain import QLearningTable
+from maze_env import Maze
 from progbar import ProgBar
+
 
 def update():
     max_episode = 30
@@ -23,14 +25,14 @@ def update():
             pb.show_progbar()
             while True:
                 # fresh env
-                #env.render()
+                # env.render()
 
                 # RL choose action based on observation
                 action = RL.choose_action(str(observation))
 
                 # RL take action and get next observation and reward
                 observation_, reward, done = env.step(action)
-    
+
                 # RL learn from this transition
                 RL.learn(str(observation), action, reward, str(observation_))
 
@@ -46,10 +48,12 @@ def update():
 
     # end of game
     print('train over, let play!')
-   
+    play()
+
+
+def play():
     # make window visible.
     env.deiconify()
-
     obs = env.reset()
     total_reward = 0
     steps = 0
@@ -59,12 +63,13 @@ def update():
         obs_, reward, done = env.step(action)
         obs = obs_
         total_reward += reward
-        steps +=1
+        steps += 1
         if done:
             break
-    print('Game over! spend {0} steps, total reward={1}'.format(steps,total_reward))
-
+        time.sleep(0.5)
+    print('Game over! spend {0} steps, total reward={1}'.format(steps, total_reward))
     env.destroy()
+
 
 if __name__ == "__main__":
     env = Maze()

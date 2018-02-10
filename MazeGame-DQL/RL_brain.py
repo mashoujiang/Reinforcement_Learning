@@ -22,7 +22,8 @@ class QLearningTable:
         if np.random.uniform() < self.epsilon:
             # choose best action
             state_action = self.q_table.loc[observation, :]
-            state_action = state_action.reindex(np.random.permutation(state_action.index))     # some actions have same value
+            state_action = state_action.reindex(
+                np.random.permutation(state_action.index))  # some actions have same value
             action = state_action.idxmax()
         else:
             # choose random action
@@ -32,10 +33,9 @@ class QLearningTable:
     def exploit_action(self, observation):
         # choose best action
         state_action = self.q_table.loc[observation, :]
-        state_action = state_action.reindex(np.random.permutation(state_action.index))     # some actions have same value
+        state_action = state_action.reindex(np.random.permutation(state_action.index))  # some actions have same value
         action = state_action.idxmax()
         return action
-
 
     def learn(self, s, a, r, s_):
         self.check_state_exist(s_)
@@ -51,7 +51,7 @@ class QLearningTable:
             # append new state to q table
             self.q_table = self.q_table.append(
                 pd.Series(
-                    [0]*len(self.actions),
+                    [0] * len(self.actions),
                     index=self.q_table.columns,
                     name=state,
                 )

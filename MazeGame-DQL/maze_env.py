@@ -6,19 +6,22 @@ Yellow bin circle:      paradise    [reward = +1].
 All other states:       ground      [reward = 0].
 """
 
+import sys
 
 import numpy as np
-import time
-import sys
+
 if sys.version_info.major == 2:
     import Tkinter as tk
 else:
     import tkinter as tk
 
-
-UNIT = 40   # pixels
+UNIT = 80  # pixels
+CENTRAL = UNIT / 2  # central of grids
+SEAM = UNIT / 8  # seam width
+INNER = CENTRAL - SEAM  # inner grid
 MAZE_H = 4  # grid height
 MAZE_W = 4  # grid width
+STATUS_SIZE = MAZE_H * MAZE_W  # status' shape
 
 
 class Maze(tk.Tk, object):
@@ -26,15 +29,17 @@ class Maze(tk.Tk, object):
         super(Maze, self).__init__()
         self.action_space = ['u', 'd', 'l', 'r']
         self.n_actions = len(self.action_space)
+        self.n_features = STATUS_SIZE
         self.title('maze')
         self.geometry('{0}x{1}'.format(MAZE_H * UNIT, MAZE_H * UNIT))
         self._build_maze()
         self.withdraw()
+        self.position = self.get_init_position()  # position shape is [MAZE_H, MAZE_W]
 
     def _build_maze(self):
         self.canvas = tk.Canvas(self, bg='white',
-                           height=MAZE_H * UNIT,
-                           width=MAZE_W * UNIT)
+                                height=MAZE_H * UNIT,
+                                width=MAZE_W * UNIT)
 
         # create grids
         for c in range(0, MAZE_W * UNIT, UNIT):
@@ -45,66 +50,78 @@ class Maze(tk.Tk, object):
             self.canvas.create_line(x0, y0, x1, y1)
 
         # create origin
-        origin = np.array([20, 20])
+        origin = np.array([CENTRAL, CENTRAL])
 
         # hell
         hell1_center = origin + np.array([UNIT * 2, UNIT])
         self.hell1 = self.canvas.create_rectangle(
-            hell1_center[0] - 15, hell1_center[1] - 15,
-            hell1_center[0] + 15, hell1_center[1] + 15,
+            hell1_center[0] - INNER, hell1_center[1] - INNER,
+            hell1_center[0] + INNER, hell1_center[1] + INNER,
             fill='black')
         # hell
         hell2_center = origin + np.array([UNIT, UNIT * 2])
         self.hell2 = self.canvas.create_rectangle(
-            hell2_center[0] - 15, hell2_center[1] - 15,
-            hell2_center[0] + 15, hell2_center[1] + 15,
+            hell2_center[0] - INNER, hell2_center[1] - INNER,
+            hell2_center[0] + INNER, hell2_center[1] + INNER,
             fill='black')
 
         # create oval
         oval_center = origin + UNIT * 2
         self.oval = self.canvas.create_oval(
-            oval_center[0] - 15, oval_center[1] - 15,
-            oval_center[0] + 15, oval_center[1] + 15,
+            oval_center[0] - INNER, oval_center[1] - INNER,
+            oval_center[0] + INNER, oval_center[1] + INNER,
             fill='yellow')
 
         # create red rect
         self.rect = self.canvas.create_rectangle(
-            origin[0] - 15, origin[1] - 15,
-            origin[0] + 15, origin[1] + 15,
+            origin[0] - INNER, origin[1] - INNER,
+            origin[0] + INNER, origin[1] + INNER,
             fill='red')
 
         # pack all
         self.canvas.pack()
 
+    def get_init_position(self):
+        init_pos = np.zeros([MAZE_H, MAZE_W])
+        init_pos[0][0] = 1
+        return init_pos.reshape(-1)
+
+    def get_position(self, s):
+        init_pos = np.zeros([MAZE_H, MAZE_W])
+        x = int(s[0] / UNIT)
+        y = int(s[1] / UNIT)
+        init_pos[x][y] = 1
+        return init_pos.reshape(-1)
+
     def reset(self):
         self.update()
-        time.sleep(0.5)
         self.canvas.delete(self.rect)
-        origin = np.array([20, 20])
+        origin = np.array([CENTRAL, CENTRAL])
         self.rect = self.canvas.create_rectangle(
-            origin[0] - 15, origin[1] - 15,
-            origin[0] + 15, origin[1] + 15,
+            origin[0] - INNER, origin[1] - INNER,
+            origin[0] + INNER, origin[1] + INNER,
             fill='red')
         # return observation
-        return self.canvas.coords(self.rect)
+        s = self.canvas.coords(self.rect)
+        return self.get_position(s)
 
     def step(self, action):
         s = self.canvas.coords(self.rect)
         base_action = np.array([0, 0])
-        if action == 0:   # up
+        if action == 0:  # up
             if s[1] > UNIT:
                 base_action[1] -= UNIT
-        elif action == 1:   # down
+        elif action == 1:  # down
             if s[1] < (MAZE_H - 1) * UNIT:
                 base_action[1] += UNIT
-        elif action == 2:   # right
+        elif action == 2:  # right
             if s[0] < (MAZE_W - 1) * UNIT:
                 base_action[0] += UNIT
-        elif action == 3:   # left
+        elif action == 3:  # left
             if s[0] > UNIT:
                 base_action[0] -= UNIT
 
-        self.canvas.move(self.rect, base_action[0], base_action[1])  # move agent
+        self.canvas.move(self.rect, base_action[0], base_action[1])  # move one_epoch
 
         s_ = self.canvas.coords(self.rect)  # next state
 
@@ -112,19 +129,16 @@ class Maze(tk.Tk, object):
         if s_ == self.canvas.coords(self.oval):
             reward = 1
             done = True
-            s_ = 'terminal'
         elif s_ in [self.canvas.coords(self.hell1), self.canvas.coords(self.hell2)]:
             reward = -1
             done = True
-            s_ = 'terminal'
         else:
             reward = 0
             done = False
 
-        return s_, reward, done
+        return self.get_position(s_), reward, done
 
     def render(self):
-        time.sleep(0.1)
         self.update()
 
 
@@ -138,6 +152,7 @@ def update():
             s, r, done = env.step(a)
             if done:
                 break
+
 
 if __name__ == '__main__':
     env = Maze()
