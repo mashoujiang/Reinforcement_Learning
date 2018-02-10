@@ -8,10 +8,12 @@ ENTROPY_WEIGHT = 0.1
 ENTROPY_EPS = 1e-6
 REG_PARA = 1e-4
 
+
 class ActorNetwork(object):
     """
     input is status, output is action distribution
     """
+
     def __init__(self, sess, state_dim, action_dim, learning_rate):
         self.sess = sess
         self.s_dim = state_dim
@@ -23,39 +25,38 @@ class ActorNetwork(object):
 
         # Set all network parameters
         self.network_params = \
-                              tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor')
+            tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor')
 
         # set all network parameters
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                        tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.placeholder(tf.float32, shape=param.get_shape()))
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # selected action, one-hot
         self.acts = tf.placeholder(tf.float32, [None, self.a_dim])
-        
+
         # this is advantage function to present gradient
         self.advantage = tf.placeholder(tf.float32, [None, 1])
 
         # compute loss 
         self.obj = tf.reduce_mean(tf.multiply(
-                        tf.log(tf.reduce_sum(tf.multiply(self.out, self.acts),
-                                reduction_indices=1, keep_dims=True)),
-                        -self.advantage)) \
+            tf.log(tf.reduce_sum(tf.multiply(self.out, self.acts),
+                                 reduction_indices=1, keep_dims=True)),
+            -self.advantage)) \
                    + ENTROPY_WEIGHT * tf.reduce_sum(tf.multiply(self.out,
-                                                tf.log(self.out + ENTROPY_EPS)))
+                                                                tf.log(self.out + ENTROPY_EPS)))
 
         # Optimizer op
         self.optimize = tf.train.RMSPropOptimizer(self.lr_rate).minimize(self.obj)
 
-
     def my_dense(self, inp, units):
         reg = tf.contrib.layers.l2_regularizer(REG_PARA)
         output = tf.layers.dense(
-                    inputs=inp, units=units, kernel_regularizer=reg)
+            inputs=inp, units=units, kernel_regularizer=reg)
         output = tf.nn.relu(output)
         return output
 
@@ -76,12 +77,12 @@ class ActorNetwork(object):
             self.inputs: inputs,
             self.acts: acts,
             self.advantage: advantage
-            })
-    
+        })
+
     def predict(self, inputs):
         return self.sess.run(self.out, feed_dict={
-                    self.inputs:inputs
-                    })
+            self.inputs: inputs
+        })
 
     def get_network_params(self):
         return self.sess.run(self.network_params)
@@ -89,12 +90,14 @@ class ActorNetwork(object):
     def set_network_params(self, input_network_params):
         return self.sess.run(self.set_network_params_op, feed_dict={
             i: d for i, d in zip(self.input_network_params, input_network_params)
-            })
+        })
+
 
 class CriticNetwork(object):
     """
     input network state (and may action), output V(s)
     """
+
     def __init__(self, sess, state_dim, learning_rate):
         self.sess = sess
         self.s_dim = state_dim
@@ -103,18 +106,18 @@ class CriticNetwork(object):
         self.inputs, self.out = self.create_critic_network()
 
         self.network_params = \
-                              tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic')
+            tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic')
         self.input_network_params = []
         for param in self.network_params:
             self.input_network_params.append(
-                        tf.placeholder(tf.float32, shape=param.get_shape()))
+                tf.placeholder(tf.float32, shape=param.get_shape()))
 
         self.set_network_params_op = []
         for idx, param in enumerate(self.input_network_params):
             self.set_network_params_op.append(self.network_params[idx].assign(param))
 
         # network V(s)
-        self.sampled_value_s = tf.placeholder(tf.float32, [None, 1]) 
+        self.sampled_value_s = tf.placeholder(tf.float32, [None, 1])
 
         self.loss = tf.losses.mean_squared_error(self.sampled_value_s, self.out)
 
@@ -123,7 +126,7 @@ class CriticNetwork(object):
     def my_dense(self, inp, units):
         reg = tf.contrib.layers.l2_regularizer(REG_PARA)
         output = tf.layers.dense(
-                    inputs=inp, units=units, kernel_regularizer=reg)
+            inputs=inp, units=units, kernel_regularizer=reg)
         output = tf.nn.relu(output)
         return output
 
@@ -140,21 +143,22 @@ class CriticNetwork(object):
 
     def train(self, inputs, value_s):
         return self.sess.run([self.loss, self.optimize], feed_dict={
-                    self.inputs: inputs,
-                    self.sampled_value_s: value_s
-                    })
-    
+            self.inputs: inputs,
+            self.sampled_value_s: value_s
+        })
+
     def predict(self, inputs):
         return self.sess.run(self.out, feed_dict={
-                    self.inputs:inputs
-                    })
+            self.inputs: inputs
+        })
 
     def get_network_params(self):
         return self.sess.run(self.network_params)
 
     def set_network_params(self, input_network_params):
         self.sess.run(self.set_network_params_op, feed_dict={
-                i: d for i, d in zip(self.input_network_params, input_network_params)})
+            i: d for i, d in zip(self.input_network_params, input_network_params)})
+
 
 def learn(s_batch, a_batch, r_batch, terminal, actor, critic):
     assert s_batch.shape[0] == a_batch.shape[0]
@@ -166,12 +170,12 @@ def learn(s_batch, a_batch, r_batch, terminal, actor, critic):
     R_batch = np.zeros(r_batch.shape)
 
     if terminal:
-        R_batch[-1,0] = r_batch[-1,0]
+        R_batch[-1, 0] = r_batch[-1, 0]
     else:
-        R_batch[-1,0] = v_batch[-1,0] 
+        R_batch[-1, 0] = v_batch[-1, 0]
 
-    for t in reversed(xrange(batch_size-1)):
-        R_batch[t,0] = r_batch[t] + GAMMA * R_batch[t+1,0]
+    for t in reversed(xrange(batch_size - 1)):
+        R_batch[t, 0] = r_batch[t] + GAMMA * R_batch[t + 1, 0]
 
     # advantage function: Q(s,a) - v(s)
     advantage_batch = R_batch - v_batch
@@ -180,6 +184,7 @@ def learn(s_batch, a_batch, r_batch, terminal, actor, critic):
     critic_loss_batch, _ = critic.train(s_batch, R_batch)
 
     return advantage_batch, actor_loss_batch, critic_loss_batch
+
 
 def build_summaries():
     advantage = tf.Variable(0.)
@@ -192,7 +197,3 @@ def build_summaries():
     summary_ops = tf.summary.merge_all()
 
     return summary_ops, summary_vars
-    
-
-
-	
