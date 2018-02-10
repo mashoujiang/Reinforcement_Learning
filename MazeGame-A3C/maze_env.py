@@ -34,19 +34,7 @@ class Maze(tk.Tk, object):
         self.geometry('{0}x{1}'.format(MAZE_H * UNIT, MAZE_H * UNIT))
         self._build_maze()
         self.withdraw()
-        self.position = self.get_init_position()
-
-    def get_init_position(self):
-        init_pos = np.zeros([MAZE_H, MAZE_W])
-        init_pos[0][0] = 1
-        return init_pos.reshape(-1)
-
-    def get_position(self, s):
-        init_pos = np.zeros([MAZE_H, MAZE_W])
-        x = int(s[0] / UNIT)
-        y = int(s[1] / UNIT)
-        init_pos[x][y] = 1
-        return init_pos.reshape(-1)
+        self.position = self.get_init_position()  # position shape is [MAZE_H, MAZE_W]
 
     def _build_maze(self):
         self.canvas = tk.Canvas(self, bg='white',
@@ -92,6 +80,18 @@ class Maze(tk.Tk, object):
 
         # pack all
         self.canvas.pack()
+
+    def get_init_position(self):
+        init_pos = np.zeros([MAZE_H, MAZE_W])
+        init_pos[0][0] = 1
+        return init_pos.reshape(-1)
+
+    def get_position(self, s):
+        init_pos = np.zeros([MAZE_H, MAZE_W])
+        x = int(s[0] / UNIT)
+        y = int(s[1] / UNIT)
+        init_pos[x][y] = 1
+        return init_pos.reshape(-1)
 
     def reset(self):
         self.update()
