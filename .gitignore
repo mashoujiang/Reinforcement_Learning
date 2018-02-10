@@ -1,3 +1,5 @@
+.idea/
 **.pyc
 MazeGame-A3C/results/*
 **.xml
+MazeGame-A3C/models/

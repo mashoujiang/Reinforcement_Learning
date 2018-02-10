@@ -34,6 +34,8 @@ class GameGrid(Frame):
 
         # self.gamelogic = gamelogic
         self.commands = {KEY_UP: up, KEY_DOWN: down, KEY_LEFT: left, KEY_RIGHT: right}
+        self.n_actions = len(self.commands)
+        self.n_features = GRID_LEN * GRID_LEN
 
         self.grid_cells = []
         self.init_grid()
@@ -97,6 +99,14 @@ class GameGrid(Frame):
 
         return self.matrix, reward, game_over
 
+    def reset(self):
+        #self.init_grid()
+        self.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
+        self.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
+        self.update_grid_cells()
+        self.init_matrix()
+        self.update_grid_cells()
+        #self.update_grid_cells()
 
 
     def generate_next(self):
@@ -115,4 +125,15 @@ if __name__ == "__main__":
         s_, reward, done = gamegrid.step(cmd)
         print("reward={}".format(reward))
 
+    print("*"*20)
+    time.sleep(5)
+    gamegrid.reset()
+    time.sleep(5)
+    for cmd in commands:
+        s_, reward, done = gamegrid.step(cmd)
+        print("reward={}".format(reward))
+
+    gamegrid.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
+    gamegrid.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
+    print("n_actions={},n_features={}".format(gamegrid.n_actions,gamegrid.n_features))
     #gamegrid.mainloop()
