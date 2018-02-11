@@ -38,7 +38,7 @@ def add_two(mat):
     while(mat[a][b]!=0):
         a=randint(0,len(mat)-1)
         b=randint(0,len(mat)-1)
-    mat[a][b]=2
+    mat[a][b]=2 if randint(0,9) !=0 else 4
     return mat
 
 ###########
@@ -138,60 +138,58 @@ def cover_up(mat):
 
 def merge(mat):
     done=False
+    reward = 0.0
     for i in range(4):
          for j in range(3):
              if mat[i][j]==mat[i][j+1] and mat[i][j]!=0:
                  mat[i][j]*=2
                  mat[i][j+1]=0
+                 reward +=mat[i][j]
                  done=True
-    return (mat,done)
+    return (mat,done,reward)
 
 
 def up(game):
-        print("up")
         # return matrix after shifting up
         game=transpose(game)
         game,done=cover_up(game)
         temp=merge(game)
         game=temp[0]
         done=done or temp[1]
+        reward = temp[2]
         game=cover_up(game)[0]
         game=transpose(game)
-        print(game)
-        return (game,done)
+        return (game,done,reward)
 
 def down(game):
-        print("down")
         game=reverse(transpose(game))
         game,done=cover_up(game)
         temp=merge(game)
         game=temp[0]
         done=done or temp[1]
+        reward = temp[2]
         game=cover_up(game)[0]
         game=transpose(reverse(game))
-        print(game)
-        return (game,done)
+        return (game,done,reward)
 
 def left(game):
-        print("left")
         # return matrix after shifting left
         game,done=cover_up(game)
         temp=merge(game)
         game=temp[0]
         done=done or temp[1]
+        reward = temp[2]
         game=cover_up(game)[0]
-        print(game)
-        return (game,done)
+        return (game,done,reward)
 
 def right(game):
-        print("right")
         # return matrix after shifting right
         game=reverse(game)
         game,done=cover_up(game)
         temp=merge(game)
         game=temp[0]
         done=done or temp[1]
+        reward = temp[2]
         game=cover_up(game)[0]
         game=reverse(game)
-        print(game)
-        return (game,done)
+        return (game,done,reward)

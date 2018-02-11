@@ -24,6 +24,7 @@ KEY_DOWN = 1
 KEY_LEFT = 2
 KEY_RIGHT = 3
 
+MAX_NUM = 2048
 
 class GameGrid(Frame):
     def __init__(self):
@@ -36,6 +37,8 @@ class GameGrid(Frame):
         self.commands = {KEY_UP: up, KEY_DOWN: down, KEY_LEFT: left, KEY_RIGHT: right}
         self.n_actions = len(self.commands)
         self.n_features = GRID_LEN * GRID_LEN
+        self.total_reward = 0.0
+        self.max_num = MAX_NUM
 
         self.grid_cells = []
         self.init_grid()
@@ -79,9 +82,8 @@ class GameGrid(Frame):
         self.update_idletasks()
 
     def step(self, action):
-        time.sleep(0.5)
         game_over = False
-        self.matrix, done = self.commands[action](self.matrix)
+        self.matrix, done, reward = self.commands[action](self.matrix)
         if done:
             self.matrix = add_two(self.matrix)
             self.update_grid_cells()
@@ -94,10 +96,12 @@ class GameGrid(Frame):
                 self.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
                 self.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
                 game_over = True
+                reward = 0
 
-        reward = np.sum(self.matrix)
+        #self.total_reward += reward
+        state = np.array(self.matrix).reshape(-1)
 
-        return self.matrix, reward, game_over
+        return state, reward, game_over
 
     def reset(self):
         #self.init_grid()
@@ -107,6 +111,10 @@ class GameGrid(Frame):
         self.init_matrix()
         self.update_grid_cells()
         #self.update_grid_cells()
+        state = np.array(self.matrix).reshape(-1)
+        self.total_reward = 0.0
+        
+        return state
 
 
     def generate_next(self):
@@ -136,4 +144,4 @@ if __name__ == "__main__":
     gamegrid.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
     gamegrid.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
     print("n_actions={},n_features={}".format(gamegrid.n_actions,gamegrid.n_features))
-    #gamegrid.mainloop()
+    gamegrid.mainloop()
