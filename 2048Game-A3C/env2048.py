@@ -1,6 +1,6 @@
-import numpy as np
 import time
-from random import *
+
+import numpy as np
 from tkinter import *
 
 from logic import *
@@ -25,6 +25,7 @@ KEY_LEFT = 2
 KEY_RIGHT = 3
 
 MAX_NUM = 2048
+
 
 class GameGrid(Frame):
     def __init__(self):
@@ -98,24 +99,23 @@ class GameGrid(Frame):
                 game_over = True
                 reward = 0
 
-        #self.total_reward += reward
+        # self.total_reward += reward
         state = np.array(self.matrix).reshape(-1)
 
         return state, reward, game_over
 
     def reset(self):
-        #self.init_grid()
+        # self.init_grid()
         self.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
         self.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
         self.update_grid_cells()
         self.init_matrix()
         self.update_grid_cells()
-        #self.update_grid_cells()
+        # self.update_grid_cells()
         state = np.array(self.matrix).reshape(-1)
         self.total_reward = 0.0
-        
-        return state
 
+        return state
 
     def generate_next(self):
         index = (self.gen(), self.gen())
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         s_, reward, done = gamegrid.step(cmd)
         print("reward={}".format(reward))
 
-    print("*"*20)
+    print("*" * 20)
     time.sleep(5)
     gamegrid.reset()
     time.sleep(5)
@@ -143,5 +143,5 @@ if __name__ == "__main__":
 
     gamegrid.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
     gamegrid.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
-    print("n_actions={},n_features={}".format(gamegrid.n_actions,gamegrid.n_features))
+    print("n_actions={},n_features={}".format(gamegrid.n_actions, gamegrid.n_features))
     gamegrid.mainloop()

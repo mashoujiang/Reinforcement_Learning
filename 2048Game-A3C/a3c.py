@@ -60,21 +60,21 @@ class ActorNetwork(object):
         output = tf.nn.relu(output)
         return output
 
-    def padding(self,state):
+    def padding(self, state):
         tmp = state
-        tmp = tf.reshape(tmp, shape=[-1,4,4,12])
-        paddings = [[0,0],[3,3],[3,3],[0,0]]
-        tmp = tf.pad(tmp,paddings, "CONSTANT")
+        tmp = tf.reshape(tmp, shape=[-1, 4, 4, 12])
+        paddings = [[0, 0], [3, 3], [3, 3], [0, 0]]
+        tmp = tf.pad(tmp, paddings, "CONSTANT")
         return tmp
 
     def create_actor_network(self):
         with tf.variable_scope("actor"):
             inputs = tf.placeholder("float", [None, self.s_dim])
-            output = tf.reshape(inputs, shape=[-1, 4,4,12])
+            output = tf.reshape(inputs, shape=[-1, 4, 4, 12])
             output = self.padding(output)
-            output = tf.layers.conv2d(output,64,6,activation=tf.nn.relu)
-            output = tf.layers.conv2d(output,32,4,activation=tf.nn.relu)
-            output = tf.layers.conv2d(output,32,2,activation=tf.nn.relu)
+            output = tf.layers.conv2d(output, 64, 6, activation=tf.nn.relu)
+            output = tf.layers.conv2d(output, 32, 4, activation=tf.nn.relu)
+            output = tf.layers.conv2d(output, 32, 2, activation=tf.nn.relu)
             output = tf.contrib.layers.flatten(output)
             output = self.my_dense(output, 32)
             output = self.my_dense(output, 32)
@@ -142,21 +142,21 @@ class CriticNetwork(object):
         output = tf.nn.relu(output)
         return output
 
-    def padding(self,state):
+    def padding(self, state):
         tmp = state
-        tmp = tf.reshape(tmp, shape=[-1,4,4,12])
-        paddings = [[0,0],[3,3],[3,3],[0,0]]
-        tmp = tf.pad(tmp,paddings, "CONSTANT")
+        tmp = tf.reshape(tmp, shape=[-1, 4, 4, 12])
+        paddings = [[0, 0], [3, 3], [3, 3], [0, 0]]
+        tmp = tf.pad(tmp, paddings, "CONSTANT")
         return tmp
 
     def create_critic_network(self):
         with tf.variable_scope('critic'):
             inputs = tf.placeholder('float', [None, self.s_dim])
-            output = tf.reshape(inputs, shape=[-1, 4,4,12])
+            output = tf.reshape(inputs, shape=[-1, 4, 4, 12])
             output = self.padding(output)
-            output = tf.layers.conv2d(output,64,6,activation=tf.nn.relu)
-            output = tf.layers.conv2d(output,32,4,activation=tf.nn.relu)
-            output = tf.layers.conv2d(output,32,2,activation=tf.nn.relu)
+            output = tf.layers.conv2d(output, 64, 6, activation=tf.nn.relu)
+            output = tf.layers.conv2d(output, 32, 4, activation=tf.nn.relu)
+            output = tf.layers.conv2d(output, 32, 2, activation=tf.nn.relu)
             output = tf.contrib.layers.flatten(output)
             output = self.my_dense(output, 32)
             output = self.my_dense(output, 32)

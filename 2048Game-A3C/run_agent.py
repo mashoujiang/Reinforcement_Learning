@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 import a3c
-from env_2048 import GameGrid
+from env2048 import GameGrid
 
 NUM_AGENTS = 1
 ACTOR_LR_RATE = 0.001
@@ -25,7 +25,8 @@ RENDER = True
 env = GameGrid()
 A_DIM = env.n_actions
 MAX_NUM = env.max_num
-S_INFO = int(env.n_features * (np.log2(MAX_NUM)+1))
+S_INFO = int(env.n_features * (np.log2(MAX_NUM) + 1))
+
 
 class Agent(object):
     def __init__(self, sess):
@@ -60,7 +61,7 @@ class Agent(object):
             s_batch, a_batch, r_batch, terminal, self.s = self.one_epoch()
             self.total_reward += np.sum(r_batch)
             if terminal:
-                print("Episode {} get total reward={}".format(self.i_episode,self.total_reward))
+                print("Episode {} get total reward={}".format(self.i_episode, self.total_reward))
                 self.i_episode += 1
                 self.s = env.reset()
                 self.total_reward = 0.0
@@ -78,11 +79,10 @@ class Agent(object):
         state = np.log2(state)
         whereinf = np.isinf(state)
         state[whereinf] = 0
-        state = tf.one_hot(state, np.log2(MAX_NUM)+1)
+        state = tf.one_hot(state, np.log2(MAX_NUM) + 1)
         state = tf.reshape(state, [-1])
         state = self.sess.run(state)
         return state
-
 
     def one_epoch(self):
         s_batch = []
@@ -94,7 +94,7 @@ class Agent(object):
 
         while True:
             action_vec = np.zeros(A_DIM)
-            #if RENDER:
+            # if RENDER:
             #    #env.deiconify()
             #    env.render()
 
@@ -114,11 +114,10 @@ class Agent(object):
 
             if flag_end:
                 for i in xrange(len(s_)):
-                    if i%4==0:
+                    if i % 4 == 0:
                         print("")
-                    print("%5d"%s_[i]),
+                    print("%5d" % s_[i]),
                 print("")
-                    
 
             if len(r_batch) >= TRAIN_SEQ_LEN or flag_end:
                 break
