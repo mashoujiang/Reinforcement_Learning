@@ -15,11 +15,11 @@ RAND_RANGE = 10000
 SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
 MODEL_DIR = './models'
-NN_MODEL = None  # './models/nn_model_ep_10.ckpt'
-TRAIN_SEQ_LEN = 10
-MODEL_SAVE_INTERVAL = 10
+NN_MODEL = './models/nn_model_ep_5.ckpt'
+TRAIN_SEQ_LEN = 500
+MODEL_SAVE_INTERVAL = 5
 DISPLAY_REWARD_THRESHOLD = 100
-MAX_EPISODE = 10
+MAX_EPISODE = 5
 RENDER = True
 
 env = GameGrid()

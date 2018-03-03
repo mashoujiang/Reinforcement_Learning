@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 GAMMA = 0.90
-ENTROPY_WEIGHT = 0.1
+ENTROPY_WEIGHT = 0.01
 ENTROPY_EPS = 1e-6
 REG_PARA = 1e-4
 

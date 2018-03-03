@@ -160,7 +160,7 @@ class GameGrid(Frame):
         return self.smoothness() * smooth_weight \
                + self.monotonicity() * mono_weight \
                + np.log1p(self.empty_cells()) * empty_weight \
-               + float(self.max_value()) * max_weight
+               + self.max_value() * max_weight
 
     def step(self, action):
         game_over = False
