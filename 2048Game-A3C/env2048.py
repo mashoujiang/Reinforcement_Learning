@@ -150,15 +150,15 @@ class GameGrid(Frame):
         return flatten(self.matrix).count(0)
 
     def max_value(self):
-        return max(flatten(self.matrix))
+        return np.log2(max(flatten(self.matrix)))
 
     def evaluate(self):
         smooth_weight = 0.1
         mono_weight = 1.0
         empty_weight = 2.7
         max_weight = 1.0
-        #return #self.smoothness() * smooth_weight \
-        return self.monotonicity() * mono_weight \
+        return self.smoothness() * smooth_weight \
+               + self.monotonicity() * mono_weight \
                + np.log1p(self.empty_cells()) * empty_weight \
                + float(self.max_value()) * max_weight
 
@@ -178,7 +178,7 @@ class GameGrid(Frame):
                 self.grid_cells[1][1].configure(text="You", bg=BACKGROUND_COLOR_CELL_EMPTY)
                 self.grid_cells[1][2].configure(text="Lose!", bg=BACKGROUND_COLOR_CELL_EMPTY)
                 game_over = True
-                reward = 0
+                # reward = 0
 
         state = np.array(self.matrix).reshape(-1)
 
