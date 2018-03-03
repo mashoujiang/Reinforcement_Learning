@@ -63,7 +63,7 @@ class ActorNetwork(object):
     def padding(self, state):
         tmp = state
         tmp = tf.reshape(tmp, shape=[-1, 4, 4, 12])
-        paddings = [[0, 0], [3, 3], [3, 3], [0, 0]]
+        paddings = [[0, 0], [5, 5], [5, 5], [0, 0]]
         tmp = tf.pad(tmp, paddings, "CONSTANT")
         return tmp
 
@@ -145,7 +145,7 @@ class CriticNetwork(object):
     def padding(self, state):
         tmp = state
         tmp = tf.reshape(tmp, shape=[-1, 4, 4, 12])
-        paddings = [[0, 0], [3, 3], [3, 3], [0, 0]]
+        paddings = [[0, 0], [5, 5], [5, 5], [0, 0]]
         tmp = tf.pad(tmp, paddings, "CONSTANT")
         return tmp
 

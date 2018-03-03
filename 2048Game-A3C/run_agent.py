@@ -8,18 +8,18 @@ import a3c
 from env2048 import GameGrid
 
 NUM_AGENTS = 1
-ACTOR_LR_RATE = 0.001
-CRITIC_LR_RATE = 0.01
+ACTOR_LR_RATE = 0.0001
+CRITIC_LR_RATE = 0.001
 RANDOM_SEED = 42
 RAND_RANGE = 10000
 SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
 MODEL_DIR = './models'
-NN_MODEL = None
-TRAIN_SEQ_LEN = 500
-MODEL_SAVE_INTERVAL = 100
+NN_MODEL = None  # './models/nn_model_ep_10.ckpt'
+TRAIN_SEQ_LEN = 10
+MODEL_SAVE_INTERVAL = 10
 DISPLAY_REWARD_THRESHOLD = 100
-MAX_EPISODE = 8000
+MAX_EPISODE = 10
 RENDER = True
 
 env = GameGrid()
@@ -46,6 +46,7 @@ class Agent(object):
 
         # restore neural network
         if NN_MODEL is not None:
+            print("load model success!")
             self.saver.restore(self.sess, NN_MODEL)
 
         self.epoch = 0

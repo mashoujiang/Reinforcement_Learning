@@ -1,4 +1,5 @@
 import time
+from compiler.ast import flatten
 
 import numpy as np
 from tkinter import *
@@ -45,6 +46,10 @@ class GameGrid(Frame):
         self.init_grid()
         self.init_matrix()
         self.update_grid_cells()
+        # print('self.smooth:', self.smoothness())
+        # print('self.emptys:', self.empty_cells())
+        # print('self.max:', self.max_value())
+        # print('self.evalue:',self.evaluate())
 
     def init_grid(self):
         background = Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
@@ -82,9 +87,85 @@ class GameGrid(Frame):
                                                     fg=CELL_COLOR_DICT[new_number])
         self.update_idletasks()
 
+    def smoothness(self):
+        smoothness = 0
+        for i in range(GRID_LEN):
+            for j in range(GRID_LEN):
+                if self.matrix[i][j]:
+                    value = np.log2(self.matrix[i][j])
+                    for target_r in self.matrix[i][j + 1:]:
+                        if target_r != 0:
+                            target_value = np.log2(target_r)
+                            smoothness -= np.abs(value - target_value)
+                            break
+                    for x in range(i + 1, GRID_LEN):
+                        if self.matrix[x][j]:
+                            target_value = np.log2(self.matrix[x][j])
+                            smoothness -= np.abs(value - target_value)
+
+        return smoothness
+
+    def monotonicity(self):
+        totals = [0, 0, 0, 0]
+
+        # up / down direction
+        for x in range(GRID_LEN):
+            current = 0
+            next = current + 1
+            while next < 4:
+                while next < 4 and self.matrix[x][next] == 0:
+                    next += 1
+                if next >= 4:
+                    next -= 1
+                current_value = np.log2(self.matrix[x][current]) if self.matrix[x][current] else 0
+                next_value = np.log2(self.matrix[x][next]) if self.matrix[x][next] else 0
+                if current_value > next_value:
+                    totals[0] += next_value - current_value
+                elif next_value > current_value:
+                    totals[1] += current_value - next_value
+                current = next
+                next += 1
+
+        # up / down direction
+        for y in range(GRID_LEN):
+            current = 0
+            next = current + 1
+            while next < 4:
+                while next < 4 and self.matrix[next][y] == 0:
+                    next += 1
+                if next >= 4:
+                    next -= 1
+                current_value = np.log2(self.matrix[current][y]) if self.matrix[current][y] else 0
+                next_value = np.log2(self.matrix[next][y]) if self.matrix[next][y] else 0
+                if current_value > next_value:
+                    totals[2] += next_value - current_value
+                elif next_value > current_value:
+                    totals[3] += current_value - next_value
+                current = next
+                next += 1
+
+        return max(totals[0], totals[1]) + max(totals[2], totals[3])
+
+    def empty_cells(self):
+        return flatten(self.matrix).count(0)
+
+    def max_value(self):
+        return max(flatten(self.matrix))
+
+    def evaluate(self):
+        smooth_weight = 0.1
+        mono_weight = 1.0
+        empty_weight = 2.7
+        max_weight = 1.0
+        #return #self.smoothness() * smooth_weight \
+        return self.monotonicity() * mono_weight \
+               + np.log1p(self.empty_cells()) * empty_weight \
+               + float(self.max_value()) * max_weight
+
     def step(self, action):
         game_over = False
-        self.matrix, done, reward = self.commands[action](self.matrix)
+        self.matrix, done, _ = self.commands[action](self.matrix)
+        reward = self.evaluate()
         if done:
             self.matrix = add_two(self.matrix)
             self.update_grid_cells()
@@ -99,7 +180,6 @@ class GameGrid(Frame):
                 game_over = True
                 reward = 0
 
-        # self.total_reward += reward
         state = np.array(self.matrix).reshape(-1)
 
         return state, reward, game_over
@@ -130,13 +210,13 @@ if __name__ == "__main__":
     # AI policy part
     commands = [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]
     for cmd in commands:
+        time.sleep(1)
         s_, reward, done = gamegrid.step(cmd)
         print("reward={}".format(reward))
+        print(gamegrid.evaluate())
 
     print("*" * 20)
-    time.sleep(5)
     gamegrid.reset()
-    time.sleep(5)
     for cmd in commands:
         s_, reward, done = gamegrid.step(cmd)
         print("reward={}".format(reward))
