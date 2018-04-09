@@ -1,5 +1,4 @@
 import time
-from compiler.ast import flatten
 
 import numpy as np
 from tkinter import *
@@ -147,10 +146,11 @@ class GameGrid(Frame):
         return max(totals[0], totals[1]) + max(totals[2], totals[3])
 
     def empty_cells(self):
-        return flatten(self.matrix).count(0)
+        a = np.reshape(self.matrix,-1)
+        return a[a==0].sum()
 
     def max_value(self):
-        return np.log2(max(flatten(self.matrix)))
+        return np.log2(np.max(self.matrix))
 
     def evaluate(self):
         smooth_weight = 0.1

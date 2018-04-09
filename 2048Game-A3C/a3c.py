@@ -81,7 +81,7 @@ class ActorNetwork(object):
             output = self.my_dense(output, 16)
             output = tf.layers.dense(inputs=output, units=self.a_dim)
             output = tf.nn.softmax(output)
-            print "created actor network"
+            print("created actor network")
             return inputs, output
 
     def train(self, inputs, acts, advantage):
@@ -162,7 +162,7 @@ class CriticNetwork(object):
             output = self.my_dense(output, 32)
             output = self.my_dense(output, 16)
             output = tf.layers.dense(inputs=output, units=1)
-            print "created critic network"
+            print("created critic network")
             return inputs, output
 
     def train(self, inputs, value_s):
@@ -198,7 +198,7 @@ def learn(s_batch, a_batch, r_batch, terminal, actor, critic):
     else:
         R_batch[-1, 0] = v_batch[-1, 0]
 
-    for t in reversed(xrange(batch_size - 1)):
+    for t in reversed(range(batch_size - 1)):
         R_batch[t, 0] = r_batch[t] + GAMMA * R_batch[t + 1, 0]
 
     # advantage function: Q(s,a) - v(s)

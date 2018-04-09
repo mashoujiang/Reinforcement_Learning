@@ -114,7 +114,7 @@ class Agent(object):
             ep_rs_sum += reward
 
             if flag_end:
-                for i in xrange(len(s_)):
+                for i in range(len(s_)):
                     if i % 4 == 0:
                         print("")
                     print("%5d" % s_[i]),
